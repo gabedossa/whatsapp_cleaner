@@ -51,7 +51,7 @@ select option {
 
 @layer components {
   .app-surface {
-    @apply relative flex h-dvh w-full max-w-[430px] flex-col overflow-hidden bg-ink-900 text-white sm:h-[min(844px,calc(100dvh-48px))] sm:rounded-[44px] sm:border sm:border-white/10 sm:shadow-shell;
+    @apply relative flex h-dvh w-full flex-col overflow-hidden bg-ink-900 text-white md:w-[90%] lg:w-[80%] sm:h-[min(844px,calc(100dvh-48px))] sm:rounded-[44px] sm:border sm:border-white/10 sm:shadow-shell;
   }
 
   .screen {

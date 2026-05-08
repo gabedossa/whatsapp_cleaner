@@ -100,6 +100,7 @@ export default function SettingsScreen({
               <button
                 type="button"
                 onClick={() => toggleField(field.key)}
+                aria-label={`Alternar ${field.key}`}
                 aria-pressed={settings[field.key]}
                 className={`focus-ring relative h-8 w-[3.35rem] shrink-0 rounded-full transition ${
                   settings[field.key] ? "bg-mint" : "bg-white/[0.14]"
@@ -113,6 +114,7 @@ export default function SettingsScreen({
               </button>
             ) : (
               <select
+                aria-label="Periodo minimo"
                 value={settings.days}
                 onChange={(event) => updateField(event.target.value)}
                 className="focus-ring w-full shrink-0 rounded-xl border border-mint/30 bg-mint/[0.12] px-3 py-2 text-sm font-bold text-mint outline-none min-[380px]:w-auto"
