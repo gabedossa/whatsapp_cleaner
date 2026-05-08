@@ -99,7 +99,7 @@ export default function ScanScreen({ onNavigate, onClean }: ScanScreenProps) {
         : "Finalizando...";
 
     return (
-      <div className="screen-tight flex flex-1 flex-col items-center justify-center text-center animate-fadeUp">
+      <div className="screen-tight flex flex-1 flex-col items-center justify-center text-center animate-fadeUp md:py-12">
         <div className="mb-9">
           <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-[28px] border border-mint/20 bg-mint/10 text-3xl font-black text-mint animate-softPulse">
             <span aria-hidden="true">⌕</span>
@@ -108,7 +108,7 @@ export default function ScanScreen({ onNavigate, onClean }: ScanScreenProps) {
           <p className="muted-copy mt-2">Verificando conversas, anexos e arquivos antigos.</p>
         </div>
 
-        <div className="w-full max-w-[300px]">
+        <div className="w-full max-w-[300px] md:max-w-[420px]">
           <div className="h-2 overflow-hidden rounded-full bg-white/10">
             <div
               className="h-full rounded-full bg-gradient-to-r from-mint to-cyan transition-[width] duration-200"
@@ -126,8 +126,8 @@ export default function ScanScreen({ onNavigate, onClean }: ScanScreenProps) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col animate-fadeUp">
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 sm:px-6">
-        <header className="mb-5 pt-10">
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 sm:px-6 md:px-8 lg:px-10">
+        <header className="mb-5 pt-8 lg:pt-10">
           <button
             type="button"
             onClick={() => onNavigate("home")}
@@ -139,8 +139,8 @@ export default function ScanScreen({ onNavigate, onClean }: ScanScreenProps) {
           <p className="muted-copy mt-2">Com mais de 30 dias de inatividade.</p>
         </header>
 
-        <div className="mb-5 space-y-3">
-          <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="mb-5 space-y-3 md:flex md:items-end md:justify-between md:gap-4 md:space-y-0">
+          <div className="flex gap-2 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible md:pb-0">
             {filters.map((item) => {
               const active = filter === item.key;
 
@@ -161,7 +161,7 @@ export default function ScanScreen({ onNavigate, onClean }: ScanScreenProps) {
             })}
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2 md:w-56 md:shrink-0">
             <button
               type="button"
               onClick={selectAll}
@@ -179,7 +179,7 @@ export default function ScanScreen({ onNavigate, onClean }: ScanScreenProps) {
           </div>
         </div>
 
-        <div className="space-y-3 pb-4">
+        <div className="grid grid-cols-1 gap-3 pb-4 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((conversation, index) => {
             const isSelected = selected.has(conversation.id);
             const isBeingDeleted = deletingIds.has(conversation.id);
@@ -239,8 +239,8 @@ export default function ScanScreen({ onNavigate, onClean }: ScanScreenProps) {
         </div>
       </div>
 
-      <footer className="shrink-0 border-t border-white/[0.07] bg-ink-900/95 px-5 pb-[calc(env(safe-area-inset-bottom)+20px)] pt-3 backdrop-blur sm:px-6">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm">
+      <footer className="shrink-0 border-t border-white/[0.07] bg-ink-900/95 px-5 pb-[calc(env(safe-area-inset-bottom)+20px)] pt-3 backdrop-blur sm:px-6 md:px-8 lg:flex lg:items-center lg:gap-6 lg:px-10 lg:pb-5">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm lg:mb-0 lg:flex-1">
           <span className="text-white/50">
             {selected.size === 0
               ? "Toque nas conversas para selecionar"
@@ -259,7 +259,7 @@ export default function ScanScreen({ onNavigate, onClean }: ScanScreenProps) {
           type="button"
           onClick={handleDelete}
           disabled={selected.size === 0 || deleting}
-          className={`focus-ring primary-action ${
+          className={`focus-ring primary-action lg:max-w-sm ${
             selected.size > 0
               ? "bg-gradient-to-r from-danger to-coral text-white shadow-danger"
               : ""

@@ -15,8 +15,8 @@ const tabs: { key: Screen; icon: string; label: string }[] = [
 
 export default function BottomNav({ screen, onNavigate }: BottomNavProps) {
   return (
-    <nav className="relative z-20 shrink-0 border-t border-white/[0.07] bg-ink-900/95 px-3 pb-[calc(env(safe-area-inset-bottom)+16px)] pt-2 backdrop-blur">
-      <div className="grid grid-cols-3 gap-1">
+    <nav className="relative z-20 shrink-0 border-t border-white/[0.07] bg-ink-900/95 px-3 pb-[calc(env(safe-area-inset-bottom)+16px)] pt-2 backdrop-blur md:px-8 lg:px-10">
+      <div className="mx-auto grid w-full max-w-xl grid-cols-3 gap-1">
         {tabs.map((tab) => {
           const isActive = screen === tab.key;
 

@@ -72,8 +72,8 @@ export default function SettingsScreen({
   };
 
   return (
-    <div className="screen animate-fadeUp">
-      <header className="mb-6 pt-5">
+    <div className="screen animate-fadeUp lg:grid lg:grid-cols-[minmax(240px,320px)_minmax(0,1fr)] lg:items-start lg:gap-8">
+      <header className="mb-6 pt-5 md:pt-2 lg:mb-0 lg:pt-0">
         <button
           type="button"
           onClick={() => onNavigate("home")}
@@ -85,11 +85,11 @@ export default function SettingsScreen({
         <p className="muted-copy mt-2">Ajuste como a limpeza deve se comportar.</p>
       </header>
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         {settingFields.map((field) => (
           <section
             key={field.key}
-            className="glass-card flex flex-col gap-4 p-4 min-[380px]:flex-row min-[380px]:items-center min-[380px]:justify-between"
+            className="glass-card flex flex-col gap-4 p-4 min-[380px]:flex-row min-[380px]:items-center min-[380px]:justify-between md:min-h-[8rem] md:flex-col md:items-start lg:p-5 xl:min-h-[9rem]"
           >
             <div className="min-w-0">
               <h3 className="text-[0.95rem] font-bold text-white">{field.label}</h3>
@@ -117,7 +117,7 @@ export default function SettingsScreen({
                 aria-label="Periodo minimo"
                 value={settings.days}
                 onChange={(event) => updateField(event.target.value)}
-                className="focus-ring w-full shrink-0 rounded-xl border border-mint/30 bg-mint/[0.12] px-3 py-2 text-sm font-bold text-mint outline-none min-[380px]:w-auto"
+                className="focus-ring w-full shrink-0 rounded-xl border border-mint/30 bg-mint/[0.12] px-3 py-2 text-sm font-bold text-mint outline-none"
               >
                 {field.options.map((option) => (
                   <option key={option} value={option}>

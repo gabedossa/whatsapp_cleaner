@@ -38,17 +38,17 @@ export default function HomeScreen({
   const oldSizeMB = oldConversations.reduce((sum, conversation) => sum + conversation.sizeMB, 0);
 
   return (
-    <div className="screen animate-fadeUp">
-      <header className="mb-7 pt-5">
+    <div className="screen animate-fadeUp lg:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)] lg:items-start lg:gap-6 xl:gap-8">
+      <header className="mb-7 pt-5 md:pt-2 lg:col-span-2 lg:mb-2 lg:max-w-3xl lg:pt-0">
         <p className="eyebrow">Bem-vindo de volta</p>
         <h1 className="title-xl mt-1">Limpador WA</h1>
-        <p className="muted-copy mt-2 max-w-[19rem]">
+        <p className="muted-copy mt-2 max-w-[34rem] md:text-base">
           Encontre conversas antigas, revise o que ocupa espaço e limpe em poucos toques.
         </p>
       </header>
 
-      <section className="mb-4 rounded-[28px] border border-mint/20 bg-[linear-gradient(135deg,rgba(0,229,160,0.14),rgba(0,180,216,0.08))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] sm:p-6">
-        <div className="flex items-center gap-5 max-[360px]:flex-col max-[360px]:items-start">
+      <section className="mb-4 rounded-[28px] border border-mint/20 bg-[linear-gradient(135deg,rgba(0,229,160,0.14),rgba(0,180,216,0.08))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] sm:p-6 md:p-7 lg:mb-0 lg:flex lg:min-h-[27rem] lg:items-center">
+        <div className="flex w-full items-center gap-5 max-[360px]:flex-col max-[360px]:items-start md:gap-7 lg:flex-col lg:items-start xl:flex-row xl:items-center">
           <CircularProgress percent={usedPercent} color={getStorageColor(usedPercent)} size={128}>
             <div className="text-center">
               <div className="font-display text-2xl font-extrabold leading-none text-white">
@@ -61,7 +61,7 @@ export default function HomeScreen({
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-white/[0.58]">Armazenamento WhatsApp</p>
             <div className="mt-3">
-              <div className="font-display text-2xl font-bold leading-none text-white">
+              <div className="font-display text-2xl font-bold leading-none text-white md:text-3xl">
                 <Counter target={usedMB} /> MB
               </div>
               <p className="mt-1 text-xs font-medium text-white/40">de {TOTAL_STORAGE_MB} MB</p>
@@ -76,44 +76,46 @@ export default function HomeScreen({
         </div>
       </section>
 
-      <div className="mb-5 grid grid-cols-1 gap-3 min-[360px]:grid-cols-2">
-        {stats.map((stat) => {
-          const value = stat.key === "old" ? oldConversations.length : formatSize(oldSizeMB);
+      <div className="lg:flex lg:flex-col lg:gap-4">
+        <div className="mb-5 grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 lg:mb-0">
+          {stats.map((stat) => {
+            const value = stat.key === "old" ? oldConversations.length : formatSize(oldSizeMB);
 
-          return (
-            <article key={stat.key} className="glass-card p-4">
-              <div className={`font-display text-2xl font-extrabold ${stat.accent}`}>{value}</div>
-              <p className="mt-1 text-sm font-semibold text-white/[0.64]">{stat.label}</p>
-              <p className="mt-0.5 text-xs text-white/35">{stat.sub}</p>
-            </article>
-          );
-        })}
-      </div>
+            return (
+              <article key={stat.key} className="glass-card p-4 md:p-5">
+                <div className={`font-display text-2xl font-extrabold ${stat.accent}`}>{value}</div>
+                <p className="mt-1 text-sm font-semibold text-white/[0.64]">{stat.label}</p>
+                <p className="mt-0.5 text-xs text-white/35">{stat.sub}</p>
+              </article>
+            );
+          })}
+        </div>
 
-      <div className="mb-4 grid grid-cols-2 gap-3">
-        <article className="rounded-[18px] border border-white/10 bg-white/[0.035] p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/35">Limpas</p>
-          <p className="mt-2 font-display text-2xl font-extrabold text-white">{cleanedCount}</p>
-        </article>
-        <article className="rounded-[18px] border border-white/10 bg-white/[0.035] p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/35">Economia</p>
-          <p className="mt-2 font-display text-2xl font-extrabold text-mint">
-            {formatSize(totalCleanedMB)}
-          </p>
-        </article>
-      </div>
+        <div className="mb-4 grid grid-cols-2 gap-3 lg:mb-0">
+          <article className="rounded-[18px] border border-white/10 bg-white/[0.035] p-4 md:p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/35">Limpas</p>
+            <p className="mt-2 font-display text-2xl font-extrabold text-white">{cleanedCount}</p>
+          </article>
+          <article className="rounded-[18px] border border-white/10 bg-white/[0.035] p-4 md:p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/35">Economia</p>
+            <p className="mt-2 font-display text-2xl font-extrabold text-mint">
+              {formatSize(totalCleanedMB)}
+            </p>
+          </article>
+        </div>
 
-      <div className="space-y-3">
-        <button type="button" onClick={() => onNavigate("scan")} className="primary-action focus-ring">
-          Analisar armazenamento
-        </button>
-        <button
-          type="button"
-          onClick={() => onNavigate("settings")}
-          className="secondary-action focus-ring"
-        >
-          Configurações de limpeza
-        </button>
+        <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0 lg:grid-cols-1">
+          <button type="button" onClick={() => onNavigate("scan")} className="primary-action focus-ring">
+            Analisar armazenamento
+          </button>
+          <button
+            type="button"
+            onClick={() => onNavigate("settings")}
+            className="secondary-action focus-ring"
+          >
+            Configurações de limpeza
+          </button>
+        </div>
       </div>
     </div>
   );

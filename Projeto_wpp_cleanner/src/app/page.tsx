@@ -48,7 +48,13 @@ export default function HomePage() {
   const showBottomNav = screen === "home" || screen === "settings";
 
   return (
-    <main className="grid min-h-dvh place-items-center overflow-hidden bg-[linear-gradient(135deg,#050914_0%,#08111b_45%,#0a0f1e_100%)] text-white sm:p-6">
+    <main className="relative grid min-h-dvh place-items-center overflow-hidden bg-[#060b14] text-white sm:p-6 md:p-8">
+      {/* Glows decorativos visíveis apenas no desktop, atrás do frame */}
+      <div className="pointer-events-none absolute inset-0 hidden sm:block">
+        <div className="absolute -top-40 left-1/2 h-[480px] w-[640px] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse,rgba(0,229,160,0.09)_0%,transparent_70%)]" />
+        <div className="absolute bottom-0 right-0 h-80 w-80 translate-x-1/3 translate-y-1/4 rounded-full bg-[radial-gradient(ellipse,rgba(0,180,216,0.07)_0%,transparent_65%)]" />
+        <div className="absolute bottom-1/3 left-0 h-60 w-60 -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse,rgba(0,229,160,0.05)_0%,transparent_65%)]" />
+      </div>
       <div className="app-surface">
         <div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(180deg,rgba(0,229,160,0.08)_0%,transparent_34%),linear-gradient(140deg,rgba(0,180,216,0.07)_0%,transparent_26%),linear-gradient(0deg,rgba(255,255,255,0.025),rgba(255,255,255,0))]" />
 
