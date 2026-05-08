@@ -1,34 +1,20 @@
-// ─────────────────────────────────────────────
-// Funções utilitárias do WhatsApp Cleaner
-// ─────────────────────────────────────────────
-
-/**
- * Formata um valor em MB para exibição legível.
- * Acima de 1000 MB exibe em GB.
- */
 export function formatSize(mb: number): string {
   if (mb >= 1000) return `${(mb / 1000).toFixed(1)} GB`;
   return `${mb} MB`;
 }
 
-/**
- * Retorna a cor de destaque com base no percentual de uso.
- * Vermelho quando uso > 70%, verde caso contrário.
- */
 export function getStorageColor(percent: number): string {
-  return percent > 70 ? "#FF6B6B" : "#00E5A0";
+  if (percent > 78) return "#FF6B6B";
+  if (percent > 62) return "#FFE66D";
+  return "#00E5A0";
 }
 
-/**
- * Calcula o total em MB de um conjunto de IDs selecionados
- * a partir da lista de conversas.
- */
 export function calcSelectedSize(
   selected: Set<number>,
   conversations: { id: number; sizeMB: number }[]
 ): number {
   return [...selected].reduce((sum, id) => {
-    const conv = conversations.find((c) => c.id === id);
-    return sum + (conv ? conv.sizeMB : 0);
+    const conversation = conversations.find((item) => item.id === id);
+    return sum + (conversation ? conversation.sizeMB : 0);
   }, 0);
 }

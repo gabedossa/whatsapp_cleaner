@@ -1,12 +1,6 @@
 "use client";
 
-import type { Screen, CleanerSettings } from "@/types";
-
-// ─────────────────────────────────────────────
-// Tela: Configurações
-// Permite ao usuário personalizar o comportamento
-// da limpeza automática
-// ─────────────────────────────────────────────
+import type { CleanerSettings, Screen } from "@/types";
 
 interface SettingsScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -14,12 +8,23 @@ interface SettingsScreenProps {
   setSettings: (updater: (prev: CleanerSettings) => CleanerSettings) => void;
 }
 
-// Definição dos campos de configuração
+type ToggleKey = Exclude<keyof CleanerSettings, "days">;
 type SettingField =
-  | { key: keyof CleanerSettings; label: string; sub: string; type: "toggle" }
-  | { key: keyof CleanerSettings; label: string; sub: string; type: "select"; options: string[] };
+  | {
+      key: "days";
+      label: string;
+      sub: string;
+      type: "select";
+      options: string[];
+    }
+  | {
+      key: ToggleKey;
+      label: string;
+      sub: string;
+      type: "toggle";
+    };
 
-const SETTING_FIELDS: SettingField[] = [
+const settingFields: SettingField[] = [
   {
     key: "days",
     label: "Período mínimo",
@@ -35,8 +40,8 @@ const SETTING_FIELDS: SettingField[] = [
   },
   {
     key: "keepStarred",
-    label: "Manter mensagens favoritas",
-    sub: "Não apagar mensagens com ★",
+    label: "Manter favoritas",
+    sub: "Preservar mensagens marcadas",
     type: "toggle",
   },
   {
@@ -48,7 +53,7 @@ const SETTING_FIELDS: SettingField[] = [
   {
     key: "backup",
     label: "Backup antes de limpar",
-    sub: "Exportar antes de excluir",
+    sub: "Exportar dados antes de excluir",
     type: "toggle",
   },
 ];
@@ -58,148 +63,70 @@ export default function SettingsScreen({
   settings,
   setSettings,
 }: SettingsScreenProps) {
-  // Alterna um campo booleano nas configurações
-  const toggleField = (key: keyof CleanerSettings) => {
-    setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+  const toggleField = (key: ToggleKey) => {
+    setSettings((previous) => ({ ...previous, [key]: !previous[key] }));
   };
 
-  // Atualiza um campo string (select) nas configurações
-  const updateField = (key: keyof CleanerSettings, value: string) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
+  const updateField = (value: string) => {
+    setSettings((previous) => ({ ...previous, days: value }));
   };
 
   return (
-    <div style={{ padding: "0 20px 100px", animation: "fadeUp 0.4s ease" }}>
-      {/* Cabeçalho */}
-      <div style={{ paddingTop: 60, marginBottom: 28 }}>
+    <div className="screen animate-fadeUp">
+      <header className="mb-6 pt-5">
         <button
+          type="button"
           onClick={() => onNavigate("home")}
-          style={{
-            background: "none",
-            border: "none",
-            color: "rgba(255,255,255,0.5)",
-            cursor: "pointer",
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: 14,
-            padding: 0,
-            marginBottom: 16,
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-          }}
+          className="focus-ring mb-5 inline-flex rounded-full px-1 py-1 text-sm font-bold text-white/[0.48] transition hover:text-white/75"
         >
-          ← Voltar
+          Voltar
         </button>
-        <h2
-          style={{
-            color: "#fff",
-            fontFamily: "'Syne', sans-serif",
-            fontSize: 24,
-            fontWeight: 800,
-            margin: 0,
-          }}
-        >
-          Configurações
-        </h2>
-        <p
-          style={{
-            color: "rgba(255,255,255,0.4)",
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: 14,
-            marginTop: 4,
-          }}
-        >
-          Personalize o comportamento da limpeza
-        </p>
+        <h2 className="title-lg">Configurações</h2>
+        <p className="muted-copy mt-2">Ajuste como a limpeza deve se comportar.</p>
+      </header>
+
+      <div className="space-y-3">
+        {settingFields.map((field) => (
+          <section
+            key={field.key}
+            className="glass-card flex flex-col gap-4 p-4 min-[380px]:flex-row min-[380px]:items-center min-[380px]:justify-between"
+          >
+            <div className="min-w-0">
+              <h3 className="text-[0.95rem] font-bold text-white">{field.label}</h3>
+              <p className="mt-1 text-sm leading-snug text-white/[0.42]">{field.sub}</p>
+            </div>
+
+            {field.type === "toggle" ? (
+              <button
+                type="button"
+                onClick={() => toggleField(field.key)}
+                aria-pressed={settings[field.key]}
+                className={`focus-ring relative h-8 w-[3.35rem] shrink-0 rounded-full transition ${
+                  settings[field.key] ? "bg-mint" : "bg-white/[0.14]"
+                }`}
+              >
+                <span
+                  className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow-lg transition ${
+                    settings[field.key] ? "left-[1.55rem]" : "left-1"
+                  }`}
+                />
+              </button>
+            ) : (
+              <select
+                value={settings.days}
+                onChange={(event) => updateField(event.target.value)}
+                className="focus-ring w-full shrink-0 rounded-xl border border-mint/30 bg-mint/[0.12] px-3 py-2 text-sm font-bold text-mint outline-none min-[380px]:w-auto"
+              >
+                {field.options.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            )}
+          </section>
+        ))}
       </div>
-
-      {/* Lista de campos */}
-      {SETTING_FIELDS.map((field) => (
-        <div
-          key={field.key}
-          style={{
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: 18,
-            padding: "18px 20px",
-            marginBottom: 10,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          {/* Label e descrição */}
-          <div>
-            <div
-              style={{
-                color: "#fff",
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 15,
-                fontWeight: 600,
-              }}
-            >
-              {field.label}
-            </div>
-            <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginTop: 2 }}>
-              {field.sub}
-            </div>
-          </div>
-
-          {/* Toggle ou Select */}
-          {field.type === "toggle" ? (
-            <div
-              onClick={() => toggleField(field.key)}
-              style={{
-                width: 50,
-                height: 28,
-                borderRadius: 100,
-                cursor: "pointer",
-                position: "relative",
-                background: settings[field.key] ? "#00E5A0" : "rgba(255,255,255,0.12)",
-                transition: "background 0.3s",
-                flexShrink: 0,
-              }}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  top: 3,
-                  left: settings[field.key] ? 24 : 3,
-                  width: 22,
-                  height: 22,
-                  borderRadius: 100,
-                  background: "#fff",
-                  transition: "left 0.3s cubic-bezier(0.4,0,0.2,1)",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-                }}
-              />
-            </div>
-          ) : (
-            <select
-              value={settings[field.key] as string}
-              onChange={(e) => updateField(field.key, e.target.value)}
-              style={{
-                background: "rgba(0,229,160,0.15)",
-                border: "1px solid rgba(0,229,160,0.3)",
-                borderRadius: 10,
-                color: "#00E5A0",
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 13,
-                fontWeight: 600,
-                padding: "6px 10px",
-                cursor: "pointer",
-                outline: "none",
-              }}
-            >
-              {(field as { options: string[] }).options.map((opt) => (
-                <option key={opt} value={opt} style={{ background: "#0A0F1E" }}>
-                  {opt}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
-      ))}
     </div>
   );
 }

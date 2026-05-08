@@ -1,14 +1,9 @@
 import type { Conversation } from "@/types";
 
-// ─────────────────────────────────────────────
-// Dados simulados de conversas do WhatsApp
-// Em um app real, esses dados viriam da API
-// do sistema de arquivos do dispositivo
-// ─────────────────────────────────────────────
 export const MOCK_CONVERSATIONS: Conversation[] = [
   {
     id: 1,
-    name: "Família ❤️",
+    name: "Família",
     avatar: "F",
     color: "#FF6B6B",
     lastMsg: "há 45 dias",
@@ -52,7 +47,7 @@ export const MOCK_CONVERSATIONS: Conversation[] = [
   },
   {
     id: 5,
-    name: "Futebol ⚽",
+    name: "Futebol",
     avatar: "F",
     color: "#FF8B94",
     lastMsg: "há 33 dias",
@@ -85,7 +80,7 @@ export const MOCK_CONVERSATIONS: Conversation[] = [
   },
   {
     id: 8,
-    name: "Vizinhos 🏠",
+    name: "Vizinhos",
     avatar: "V",
     color: "#C7CEEA",
     lastMsg: "há 44 dias",
@@ -96,5 +91,4 @@ export const MOCK_CONVERSATIONS: Conversation[] = [
   },
 ];
 
-/** Armazenamento total simulado em MB */
 export const TOTAL_STORAGE_MB = 1588;

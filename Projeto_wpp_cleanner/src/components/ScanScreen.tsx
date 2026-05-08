@@ -1,14 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import type { Conversation, Screen } from "@/types";
+import { useEffect, useState } from "react";
 import { MOCK_CONVERSATIONS } from "@/data/conversations";
-import { formatSize, calcSelectedSize } from "@/utils/format";
-
-// ─────────────────────────────────────────────
-// Tela: Scan / Resultados
-// Escaneia e lista conversas elegíveis para limpeza
-// ─────────────────────────────────────────────
+import type { Conversation, Screen } from "@/types";
+import { calcSelectedSize, formatSize } from "@/utils/format";
 
 type FilterKey = "all" | "media" | "old";
 
@@ -16,6 +11,12 @@ interface ScanScreenProps {
   onNavigate: (screen: Screen) => void;
   onClean: (selected: Set<number>, totalMB: number) => void;
 }
+
+const filters: { key: FilterKey; label: string }[] = [
+  { key: "all", label: "Todas" },
+  { key: "media", label: "Mais mídia" },
+  { key: "old", label: "+60 dias" },
+];
 
 export default function ScanScreen({ onNavigate, onClean }: ScanScreenProps) {
   const [scanning, setScanning] = useState(true);
@@ -26,61 +27,62 @@ export default function ScanScreen({ onNavigate, onClean }: ScanScreenProps) {
   const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set());
   const [conversations, setConversations] = useState<Conversation[]>(MOCK_CONVERSATIONS);
 
-  // Conversas com mais de 30 dias
-  const eligible = conversations.filter((c) => c.age >= 30);
-
-  // Total em MB das conversas selecionadas
+  const eligible = conversations.filter((conversation) => conversation.age >= 30);
   const totalSelectedMB = calcSelectedSize(selected, eligible);
 
-  // Simula o progresso do scan
   useEffect(() => {
-    let p = 0;
+    let currentProgress = 0;
     const interval = setInterval(() => {
-      p += Math.random() * 18 + 8;
-      if (p >= 100) {
-        p = 100;
+      currentProgress += Math.random() * 18 + 8;
+      if (currentProgress >= 100) {
+        currentProgress = 100;
         clearInterval(interval);
         setTimeout(() => setScanning(false), 300);
       }
-      setProgress(Math.min(Math.round(p), 100));
+      setProgress(Math.min(Math.round(currentProgress), 100));
     }, 180);
+
     return () => clearInterval(interval);
   }, []);
 
-  // Selecionar / desselecionar uma conversa
   const toggleSelect = (id: number) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+    setSelected((previous) => {
+      const next = new Set(previous);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   };
 
-  // Filtra conversas conforme a aba ativa
-  const filtered = eligible.filter((c) => {
-    if (filter === "media") return c.mediaCount > 100;
-    if (filter === "old") return c.age > 60;
+  const filtered = eligible.filter((conversation) => {
+    if (filter === "media") return conversation.mediaCount > 100;
+    if (filter === "old") return conversation.age > 60;
     return true;
   });
 
-  const selectAll = () => setSelected(new Set(filtered.map((c) => c.id)));
+  const selectAll = () => setSelected(new Set(filtered.map((conversation) => conversation.id)));
   const clearAll = () => setSelected(new Set());
 
-  // Anima e exclui as conversas selecionadas
   const handleDelete = () => {
     if (selected.size === 0 || deleting) return;
+
     setDeleting(true);
     const ids = [...selected];
-    let i = 0;
+    let index = 0;
 
-    // Remove um item a cada 120ms para efeito visual
     const interval = setInterval(() => {
-      setDeletingIds((prev) => new Set([...prev, ids[i]]));
-      i++;
-      if (i >= ids.length) {
+      setDeletingIds((previous) => new Set([...previous, ids[index]]));
+      index += 1;
+
+      if (index >= ids.length) {
         clearInterval(interval);
         setTimeout(() => {
-          setConversations((prev) => prev.filter((c) => !selected.has(c.id)));
+          setConversations((previous) =>
+            previous.filter((conversation) => !selected.has(conversation.id))
+          );
           onClean(selected, totalSelectedMB);
           onNavigate("done");
         }, 400);
@@ -88,387 +90,158 @@ export default function ScanScreen({ onNavigate, onClean }: ScanScreenProps) {
     }, 120);
   };
 
-  // ── Tela de scanning ──
   if (scanning) {
+    const status =
+      progress < 40
+        ? "Lendo conversas..."
+        : progress < 70
+        ? "Calculando tamanhos..."
+        : "Finalizando...";
+
     return (
-      <div
-        style={{
-          padding: "0 20px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "80vh",
-          animation: "fadeUp 0.4s ease",
-        }}
-      >
-        <div style={{ marginBottom: 40, textAlign: "center" }}>
-          <div style={{ fontSize: 48, marginBottom: 16, animation: "pulse 1.5s ease infinite" }}>
-            🔍
+      <div className="screen-tight flex flex-1 flex-col items-center justify-center text-center animate-fadeUp">
+        <div className="mb-9">
+          <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-[28px] border border-mint/20 bg-mint/10 text-3xl font-black text-mint animate-softPulse">
+            <span aria-hidden="true">⌕</span>
           </div>
-          <h2
-            style={{
-              color: "#fff",
-              fontFamily: "'Syne', sans-serif",
-              fontSize: 24,
-              fontWeight: 800,
-              margin: "0 0 8px",
-            }}
-          >
-            Analisando...
-          </h2>
-          <p
-            style={{
-              color: "rgba(255,255,255,0.5)",
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 14,
-              margin: 0,
-            }}
-          >
-            Verificando conversas e mídias
-          </p>
+          <h2 className="title-lg">Analisando</h2>
+          <p className="muted-copy mt-2">Verificando conversas, anexos e arquivos antigos.</p>
         </div>
 
-        {/* Barra de progresso */}
-        <div style={{ width: "100%", maxWidth: 280 }}>
-          <div
-            style={{
-              background: "rgba(255,255,255,0.08)",
-              borderRadius: 100,
-              height: 6,
-              overflow: "hidden",
-              marginBottom: 12,
-            }}
-          >
+        <div className="w-full max-w-[300px]">
+          <div className="h-2 overflow-hidden rounded-full bg-white/10">
             <div
-              style={{
-                width: `${progress}%`,
-                height: "100%",
-                background: "linear-gradient(90deg, #00E5A0, #00B4D8)",
-                borderRadius: 100,
-                transition: "width 0.2s ease",
-              }}
+              className="h-full rounded-full bg-gradient-to-r from-mint to-cyan transition-[width] duration-200"
+              style={{ width: `${progress}%` }}
             />
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span
-              style={{
-                color: "rgba(255,255,255,0.4)",
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 13,
-              }}
-            >
-              {progress < 40
-                ? "Lendo conversas..."
-                : progress < 70
-                ? "Calculando tamanhos..."
-                : "Finalizando..."}
-            </span>
-            <span
-              style={{
-                color: "#00E5A0",
-                fontFamily: "'Syne', sans-serif",
-                fontSize: 13,
-                fontWeight: 700,
-              }}
-            >
-              {progress}%
-            </span>
+          <div className="mt-3 flex items-center justify-between gap-4 text-sm">
+            <span className="truncate text-white/45">{status}</span>
+            <span className="font-display font-bold text-mint">{progress}%</span>
           </div>
         </div>
       </div>
     );
   }
 
-  // ── Tela de resultados ──
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        flex: 1,
-        animation: "fadeUp 0.4s ease",
-      }}
-    >
-      {/* Área scrollável */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "0 20px" }}>
-        {/* Cabeçalho */}
-        <div style={{ paddingTop: 60, marginBottom: 24 }}>
+    <div className="flex min-h-0 flex-1 flex-col animate-fadeUp">
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 sm:px-6">
+        <header className="mb-5 pt-10">
           <button
+            type="button"
             onClick={() => onNavigate("home")}
-            style={{
-              background: "none",
-              border: "none",
-              color: "rgba(255,255,255,0.5)",
-              cursor: "pointer",
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 14,
-              padding: 0,
-              marginBottom: 16,
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-            }}
+            className="focus-ring mb-5 inline-flex items-center rounded-full px-1 py-1 text-sm font-bold text-white/[0.48] transition hover:text-white/75"
           >
-            ← Voltar
+            Voltar
           </button>
-          <h2
-            style={{
-              color: "#fff",
-              fontFamily: "'Syne', sans-serif",
-              fontSize: 24,
-              fontWeight: 800,
-              margin: "0 0 4px",
-            }}
-          >
-            {eligible.length} conversas encontradas
-          </h2>
-          <p
-            style={{
-              color: "rgba(255,255,255,0.5)",
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 14,
-              margin: 0,
-            }}
-          >
-            Com mais de 30 dias de inatividade
-          </p>
-        </div>
+          <h2 className="title-lg">{eligible.length} conversas encontradas</h2>
+          <p className="muted-copy mt-2">Com mais de 30 dias de inatividade.</p>
+        </header>
 
-        {/* Filtros + Selecionar tudo */}
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            marginBottom: 20,
-            overflowX: "auto",
-            paddingBottom: 4,
-          }}
-        >
-          {(
-            [
-              { key: "all", label: "Todas" },
-              { key: "media", label: "Mais mídia" },
-              { key: "old", label: "+60 dias" },
-            ] as { key: FilterKey; label: string }[]
-          ).map((f) => (
+        <div className="mb-5 space-y-3">
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {filters.map((item) => {
+              const active = filter === item.key;
+
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => setFilter(item.key)}
+                  className={`focus-ring shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition ${
+                    active
+                      ? "border-mint bg-mint/[0.14] text-mint"
+                      : "border-white/10 bg-white/[0.045] text-white/[0.58] hover:bg-white/[0.07]"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
             <button
-              key={f.key}
-              onClick={() => setFilter(f.key)}
-              style={{
-                padding: "8px 16px",
-                borderRadius: 100,
-                border: "1px solid",
-                borderColor: filter === f.key ? "#00E5A0" : "rgba(255,255,255,0.12)",
-                background:
-                  filter === f.key ? "rgba(0,229,160,0.15)" : "rgba(255,255,255,0.04)",
-                color: filter === f.key ? "#00E5A0" : "rgba(255,255,255,0.6)",
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: "pointer",
-                whiteSpace: "nowrap",
-                transition: "all 0.2s",
-              }}
-            >
-              {f.label}
-            </button>
-          ))}
-          <div style={{ marginLeft: "auto", display: "flex", gap: 8, flexShrink: 0 }}>
-            <button
+              type="button"
               onClick={selectAll}
-              style={{
-                padding: "8px 14px",
-                borderRadius: 100,
-                border: "1px solid rgba(255,255,255,0.12)",
-                background: "none",
-                color: "rgba(255,255,255,0.5)",
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 12,
-                cursor: "pointer",
-              }}
+              className="focus-ring rounded-full border border-white/10 px-4 py-2 text-sm font-bold text-white/55 transition hover:bg-white/[0.06]"
             >
               Tudo
             </button>
             <button
+              type="button"
               onClick={clearAll}
-              style={{
-                padding: "8px 14px",
-                borderRadius: 100,
-                border: "1px solid rgba(255,255,255,0.12)",
-                background: "none",
-                color: "rgba(255,255,255,0.5)",
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 12,
-                cursor: "pointer",
-              }}
+              className="focus-ring rounded-full border border-white/10 px-4 py-2 text-sm font-bold text-white/55 transition hover:bg-white/[0.06]"
             >
               Nenhum
             </button>
           </div>
         </div>
 
-        {/* Lista de conversas */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingBottom: 16 }}>
-          {filtered.map((conv, i) => {
-            const isSelected = selected.has(conv.id);
-            const isBeingDeleted = deletingIds.has(conv.id);
+        <div className="space-y-3 pb-4">
+          {filtered.map((conversation, index) => {
+            const isSelected = selected.has(conversation.id);
+            const isBeingDeleted = deletingIds.has(conversation.id);
 
             return (
-              <div
-                key={conv.id}
-                onClick={() => !deleting && toggleSelect(conv.id)}
-                style={{
-                  background: isSelected
-                    ? "rgba(0,229,160,0.08)"
-                    : "rgba(255,255,255,0.04)",
-                  border: `1px solid ${
-                    isSelected ? "rgba(0,229,160,0.35)" : "rgba(255,255,255,0.08)"
-                  }`,
-                  borderRadius: 18,
-                  padding: "16px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 14,
-                  cursor: deleting ? "default" : "pointer",
-                  transition: "all 0.2s",
-                  overflow: "hidden",
-                  // Animação de exclusão ao confirmar
-                  animation: isBeingDeleted
-                    ? "deleteOut 0.4s ease forwards"
-                    : `fadeUp 0.3s ease ${i * 0.05}s both`,
-                }}
+              <button
+                key={conversation.id}
+                type="button"
+                onClick={() => !deleting && toggleSelect(conversation.id)}
+                className={`focus-ring flex w-full items-center gap-3 overflow-hidden rounded-[20px] border p-4 text-left transition ${
+                  isSelected
+                    ? "border-mint/40 bg-mint/[0.08]"
+                    : "border-white/10 bg-white/[0.045] hover:bg-white/[0.07]"
+                } ${isBeingDeleted ? "animate-deleteOut" : "animate-fadeUp"}`}
+                style={{ animationDelay: isBeingDeleted ? "0ms" : `${index * 42}ms` }}
+                disabled={deleting && !isSelected}
               >
-                {/* Avatar colorido */}
-                <div
+                <span
+                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border text-lg font-black"
                   style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 16,
-                    background: conv.color + "30",
-                    border: `2px solid ${conv.color}60`,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontFamily: "'Syne', sans-serif",
-                    fontWeight: 800,
-                    fontSize: 18,
-                    color: conv.color,
-                    flexShrink: 0,
+                    backgroundColor: `${conversation.color}24`,
+                    borderColor: `${conversation.color}66`,
+                    color: conversation.color,
                   }}
                 >
-                  {conv.avatar}
-                </div>
+                  {conversation.avatar}
+                </span>
 
-                {/* Informações da conversa */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "baseline",
-                      marginBottom: 4,
-                    }}
-                  >
-                    <span
-                      style={{
-                        color: "#fff",
-                        fontFamily: "'DM Sans', sans-serif",
-                        fontSize: 15,
-                        fontWeight: 600,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {conv.name}
+                <span className="min-w-0 flex-1">
+                  <span className="flex min-w-0 items-start justify-between gap-3">
+                    <span className="truncate text-[0.95rem] font-bold text-white">
+                      {conversation.name}
                     </span>
-                    <span
-                      style={{
-                        color: "#FF6B6B",
-                        fontFamily: "'Syne', sans-serif",
-                        fontSize: 13,
-                        fontWeight: 700,
-                        flexShrink: 0,
-                        marginLeft: 8,
-                      }}
-                    >
-                      {formatSize(conv.sizeMB)}
+                    <span className="shrink-0 font-display text-sm font-bold text-coral">
+                      {formatSize(conversation.sizeMB)}
                     </span>
-                  </div>
-                  <div style={{ display: "flex", gap: 12 }}>
-                    <span
-                      style={{
-                        color: "rgba(255,255,255,0.4)",
-                        fontSize: 12,
-                        fontFamily: "'DM Sans', sans-serif",
-                      }}
-                    >
-                      🕐 {conv.lastMsg}
-                    </span>
-                    <span
-                      style={{
-                        color: "rgba(255,255,255,0.4)",
-                        fontSize: 12,
-                        fontFamily: "'DM Sans', sans-serif",
-                      }}
-                    >
-                      📎 {conv.mediaCount} arquivos
-                    </span>
-                  </div>
-                </div>
+                  </span>
+                  <span className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs font-medium text-white/[0.42]">
+                    <span>{conversation.lastMsg}</span>
+                    <span>{conversation.mediaCount} arquivos</span>
+                  </span>
+                </span>
 
-                {/* Checkbox de seleção */}
-                <div
-                  style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: 8,
-                    border: `2px solid ${isSelected ? "#00E5A0" : "rgba(255,255,255,0.2)"}`,
-                    background: isSelected ? "#00E5A0" : "transparent",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    transition: "all 0.2s",
-                    flexShrink: 0,
-                  }}
+                <span
+                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-2 text-xs font-black transition ${
+                    isSelected
+                      ? "border-mint bg-mint text-ink-900"
+                      : "border-white/20 bg-transparent text-transparent"
+                  }`}
+                  aria-hidden="true"
                 >
-                  {isSelected && (
-                    <span style={{ color: "#0A0F1E", fontSize: 14, fontWeight: 900 }}>✓</span>
-                  )}
-                </div>
-              </div>
+                  ✓
+                </span>
+              </button>
             );
           })}
         </div>
       </div>
 
-      {/* ── Barra de ação fixa na parte inferior ── */}
-      <div
-        style={{
-          flexShrink: 0,
-          padding: "12px 20px 24px",
-          background: "rgba(10,15,30,0.98)",
-          borderTop: "1px solid rgba(255,255,255,0.07)",
-          backdropFilter: "blur(20px)",
-        }}
-      >
-        {/* Resumo de seleção */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 12,
-          }}
-        >
-          <span
-            style={{
-              color: "rgba(255,255,255,0.5)",
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 13,
-            }}
-          >
+      <footer className="shrink-0 border-t border-white/[0.07] bg-ink-900/95 px-5 pb-[calc(env(safe-area-inset-bottom)+20px)] pt-3 backdrop-blur sm:px-6">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm">
+          <span className="text-white/50">
             {selected.size === 0
               ? "Toque nas conversas para selecionar"
               : `${selected.size} conversa${selected.size > 1 ? "s" : ""} selecionada${
@@ -476,78 +249,29 @@ export default function ScanScreen({ onNavigate, onClean }: ScanScreenProps) {
                 }`}
           </span>
           {selected.size > 0 && (
-            <span
-              style={{
-                color: "#FF6B6B",
-                fontFamily: "'Syne', sans-serif",
-                fontSize: 13,
-                fontWeight: 700,
-              }}
-            >
+            <span className="font-display font-bold text-coral">
               {formatSize(totalSelectedMB)} a liberar
             </span>
           )}
         </div>
 
-        {/* Botão de exclusão — sempre visível */}
         <button
+          type="button"
           onClick={handleDelete}
           disabled={selected.size === 0 || deleting}
-          onMouseDown={(e) => {
-            if (selected.size > 0)
-              (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.97)";
-          }}
-          onMouseUp={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)";
-          }}
-          style={{
-            width: "100%",
-            padding: "18px",
-            borderRadius: 18,
-            background:
-              selected.size > 0
-                ? "linear-gradient(135deg, #FF4757, #FF6B6B)"
-                : "rgba(255,255,255,0.06)",
-            border: selected.size > 0 ? "none" : "1px solid rgba(255,255,255,0.1)",
-            cursor: selected.size > 0 ? "pointer" : "not-allowed",
-            fontFamily: "'Syne', sans-serif",
-            fontSize: 16,
-            fontWeight: 800,
-            color: selected.size > 0 ? "#fff" : "rgba(255,255,255,0.25)",
-            letterSpacing: 0.4,
-            boxShadow: selected.size > 0 ? "0 8px 28px rgba(255,71,87,0.4)" : "none",
-            transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 10,
-          }}
+          className={`focus-ring primary-action ${
+            selected.size > 0
+              ? "bg-gradient-to-r from-danger to-coral text-white shadow-danger"
+              : ""
+          }`}
         >
-          {deleting ? (
-            <>
-              <span style={{ fontSize: 18, animation: "pulse 0.8s ease infinite" }}>🗑️</span>
-              Excluindo conversas...
-            </>
-          ) : (
-            <>
-              <span style={{ fontSize: 18 }}>🗑️</span>
-              {selected.size > 0
-                ? `Excluir ${selected.size} conversa${selected.size > 1 ? "s" : ""}`
-                : "Selecione conversas"}
-            </>
-          )}
+          {deleting
+            ? "Excluindo conversas..."
+            : selected.size > 0
+            ? `Excluir ${selected.size} conversa${selected.size > 1 ? "s" : ""}`
+            : "Selecione conversas"}
         </button>
-      </div>
-
-      {/* Keyframes de exclusão */}
-      <style>{`
-        @keyframes deleteOut {
-          0%   { opacity: 1; transform: translateX(0); max-height: 100px; }
-          50%  { opacity: 0.2; transform: translateX(50px); }
-          100% { opacity: 0; transform: translateX(80px); max-height: 0;
-                 padding-top: 0; padding-bottom: 0; margin: 0; border-width: 0; }
-        }
-      `}</style>
+      </footer>
     </div>
   );
 }
